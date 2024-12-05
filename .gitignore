@@ -1,0 +1,7 @@
+venv/
+
+packages/
+packages.zip
+
+.env
+test_data.json
