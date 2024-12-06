@@ -15,3 +15,8 @@ Hosted via **AWS Lambda**.
 `PRIVATE_LEADERBOARD_CODE` is the prefix of the leaderboard join code. For example, if your join code is `#####-ABCDEF`, the `PRIVATE_LEADERBOARD_CODE` is `#####`.
 
 `WEBHOOK_URL` is the Discord webhook url for the channel.
+
+### Installing packages
+```console
+pip install -r requirements.txt
+```

@@ -134,5 +134,3 @@ def lambda_handler(event, context):
         image.save(image_binary, 'PNG')
         image_binary.seek(0)
         wh.send(username='Advent of Code Leaderboard', file=File(fp=image_binary, filename='leaderboard.png'))
-
-lambda_handler(None, None)
