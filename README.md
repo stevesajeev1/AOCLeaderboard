@@ -1,7 +1,7 @@
 # Advent of Code Discord Leaderboard
 
 ## Overview
-Posts the Advent of Code Leaderboard to a channel daily via a Discord webhook.
+Posts an image of the Advent of Code Leaderboard to a channel daily via a Discord webhook.
 
 Hosted via **AWS Lambda**.
 
