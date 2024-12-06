@@ -5,7 +5,8 @@ Posts the Advent of Code Leaderboard to a channel daily via a Discord webhook.
 
 Hosted via **AWS Lambda**.
 
-## Setting up your `.env`
+## Setup
+### Setting up `.env`
 `TEST_MODE` can be set to `True` or `False`. If `True`, leaderboard data is received via a local `JSON` file; otherwise, a request is made to the Advent of Code API.
 
 `SESSION_COOKIE` is the cookie from accessing the Advent of Code website.

@@ -2,6 +2,11 @@ import json
 import datetime
 import requests
 
+from PIL import Image, ImageDraw, ImageFont
+import io
+
+from discord import SyncWebhook, File
+
 import os
 from dotenv import load_dotenv
 load_dotenv()
@@ -51,91 +56,83 @@ def lambda_handler(event, context):
     members = parse_data(data)
     # Calculate max member name length for padding
     max_member_len = max([len(member['name']) for member in members])
+    # Total Length: max_member_len + 35
 
-    # Keep track of message length for Discord's 2000 character limit
-    DISCORD_CHARACTER_LIMIT = 2000
-    message = ""
-
-    # Start ANSI code block
-    message += "```ansi\n"
-    message += "[1;40m"
-
+    width = 36 + max_member_len
+    height = 2 + len(members)
+    FONT_WIDTH = 8
+    FONT_HEIGHT = 20
+    
+    # Colors
+    BG = (15, 15, 35)
+    WHITE = (204, 204, 204)
+    GREEN = (0, 153, 0)
+    GREY = (51, 51, 51)
+    GOLD = (255, 255, 102)
+    SILVER = (153, 153, 204)
+    
+    image = Image.new('RGB', (width * FONT_WIDTH, height * FONT_HEIGHT), BG)
+    draw = ImageDraw.Draw(image)
+    font = ImageFont.truetype('SourceCodePro-Regular.ttf', 14)
+    
     day = datetime.date.today().day - 1
-
+    
+    line = 0
     # Write leaderboard header
-    message += "[37m"
-    message += f"{f'Leaderboard for Day {day}':^{35 + max_member_len}}"
-    message += "\n"
-
+    leaderboard_header = f"Leaderboard for Day {day}"
+    draw.text(((width - len(leaderboard_header)) * FONT_WIDTH / 2, line * FONT_HEIGHT), leaderboard_header, WHITE, font)
+    line += 1
+    
     # Write days header
-    message += "[0;40;30m"
-    for _ in range(17):
-        message += " "
-
-    if day >= 10:
-        message += "[32m"
-    for i in range(10, 26):
-        message += str(i // 10)
-
-    for i in range(max_member_len + 2):
-        message += " "
-    message += "\n"
-
-    message += "[30m"
-    for _ in range(8):
-        message += " "
-
-    message += "[32m"
+    days_header_color = GREEN
     for i in range(1, 26):
-        message += str(i % 10)
+        if i >= 10:
+            draw.text(((8 + i) * FONT_WIDTH, line * FONT_HEIGHT), str(i // 10), days_header_color, font)
+        draw.text(((8 + i) * FONT_WIDTH, (line + 1) * FONT_HEIGHT), str(i % 10), days_header_color, font)
         if i == day:
-            message += "[30m"
-
-    for i in range(max_member_len + 2):
-        message += " "
-    message += "\n"
+            days_header_color = GREY
+    line += 2
 
     # Write member rankings
     for i, member in enumerate(members):
-        # Write score
-        member_text = ""
-        member_text += "[37m"
-        member_text += f"{(i + 1):>2}) "
-
-        member_text += f"{member['local_score']:>3} "
-
+        # Write rank and score
+        member_score = f"{(i + 1):>2}) {member['local_score']:>3}"
+        draw.text((FONT_WIDTH, line * FONT_HEIGHT), member_score, WHITE, font)
+        
         # Write stars
+        offset = 0
         prev_level = -1
+        star_color = None
+        star_text = ""
         for i in range(1, day + 1):
             day_level = member['completion_day_level'].get(i, 0)
             if prev_level != day_level:
+                if prev_level != -1:
+                    draw.text(((9 + offset) * FONT_WIDTH, line * FONT_HEIGHT), star_text, star_color, font)
+                    offset += len(star_text)
+                    star_text = ""
+                    pass
                 match day_level:
                     case 0:
-                        member_text += "[30m"
+                        star_color = GREY
                     case 1:
-                        member_text += "[36m"
+                        star_color = SILVER
                     case 2:
-                        member_text += "[33m"
+                        star_color = GOLD
                 prev_level = day_level
-            member_text += "*"
-
-        for i in range(day + 1, 28):
-            member_text += " "
-
+            star_text += "*"
+        draw.text(((9 + offset) * FONT_WIDTH, line * FONT_HEIGHT), star_text, star_color, font)
+        
         # Write name
-        member_text += "[37m"
-        member_text += f"{member['name']:<{max_member_len}}"
-        member_text += "\n"
-
-        # Break if message length will exceed Discord's 2000 character limit
-        if len(message) + len(member_text) > DISCORD_CHARACTER_LIMIT - 3:
-            break
-        message += member_text
-    message += "```"
+        draw.text((35 * FONT_WIDTH, line * FONT_HEIGHT), member['name'], WHITE, font)
+        
+        line += 1
     
     # Send to webhook
-    message_data = {
-        'content': message,
-        'username': 'Advent of Code Leaderboard'
-    }
-    requests.post(WEBHOOK_URL, json=message_data)
+    wh = SyncWebhook.from_url(WEBHOOK_URL)
+    with io.BytesIO() as image_binary:
+        image.save(image_binary, 'PNG')
+        image_binary.seek(0)
+        wh.send(username='Advent of Code Leaderboard', file=File(fp=image_binary, filename='leaderboard.png'))
+
+lambda_handler(None, None)
