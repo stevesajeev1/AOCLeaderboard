@@ -56,7 +56,6 @@ def lambda_handler(event, context):
     members = parse_data(data)
     # Calculate max member name length for padding
     max_member_len = max([len(member['name']) for member in members])
-    # Total Length: max_member_len + 35
 
     width = 36 + max_member_len
     height = 2 + len(members)
