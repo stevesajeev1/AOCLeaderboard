@@ -162,6 +162,20 @@ def generate_day_leaderboard(members):
     # Filter members to only those that have attempted
     members = list(filter(lambda member: member['day_level_time'] != (None, None), members))
     
+    # No solutions :(
+    if len(members) == 0:
+        image = Image.new('RGB', (51 * FONT_WIDTH, 4 * FONT_HEIGHT), BG)
+        draw = ImageDraw.Draw(image)
+        font = ImageFont.truetype('SourceCodePro-Regular.ttf', 14)
+        
+        leaderboard_header = f"Leaderboard for Day {DAY}"
+        draw.text(((51 - len(leaderboard_header)) * FONT_WIDTH / 2, 0), leaderboard_header, WHITE, font)
+        
+        text = f"No one solved Day {DAY} :("
+        draw.text(((51 - len(text)) * FONT_WIDTH / 2, 2 * FONT_HEIGHT), text, WHITE, font)
+        
+        return image
+    
     # Calculate max member name length for padding
     max_member_len = max([len(member['name']) for member in members])
     
