@@ -11,11 +11,13 @@ import os
 from dotenv import load_dotenv
 load_dotenv()
 
+# Load environment variables
 TEST_MODE = os.getenv("TEST_MODE") == "True"
 SESSION_COOKIE = os.getenv("SESSION_COOKIE")
 PRIVATE_LEADERBOARD_CODE = os.getenv("PRIVATE_LEADERBOARD_CODE")
 WEBHOOK_URL = os.getenv("WEBHOOK_URL")
 
+# Setup image parameters
 FONT_WIDTH = 8
 FONT_HEIGHT = 20
 
@@ -27,9 +29,11 @@ GREY = (51, 51, 51)
 GOLD = (255, 255, 102)
 SILVER = (153, 153, 204)
 
+# Get current day
 DAY = datetime.today().day - 1
 
 def parse_data(data):
+    """Parses JSON API data, filtering for relevant fields"""
     members = []
     
     # Filter data for fields needed to display leaderboard
@@ -52,6 +56,7 @@ def parse_data(data):
     return members
 
 def generate_overall_leaderboard(members):
+    """Generates image for the overall leaderboard"""
     # Sort members by local score
     members = sorted(members, key=lambda member: member['local_score'], reverse=True)
 
@@ -119,7 +124,9 @@ def generate_overall_leaderboard(members):
     return image
 
 def generate_day_leaderboard(members):
+    """Generates image for the daily leaderboard"""
     def sort(member):
+        """Ranking is based on time to solve Part 2 then Part 1"""
         max_timestamp = float("inf")
         score = [max_timestamp, max_timestamp]
         if member['day_level_time'][1] is not None:
@@ -129,7 +136,9 @@ def generate_day_leaderboard(members):
         return score
     
     def parse_timestamps(timestamps):
+        """Generates time strings from timestamps"""
         def format_td(timedelta):
+            """Formats timedelta"""
             hours, remainder = divmod(timedelta.total_seconds(), 60*60)
             minutes, seconds = divmod(remainder, 60)
             return f"{int(hours):02}:{int(minutes):02}:{int(seconds):02}"
