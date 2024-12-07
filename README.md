@@ -1,7 +1,7 @@
 # Advent of Code Discord Leaderboard
 
 ## Overview
-Posts an image of the Advent of Code Leaderboard to a channel daily via a Discord webhook.
+Posts images of the Advent of Code Leaderboard to a channel daily via a Discord webhook. The daily leaderboard is ordered by the time taken to solve Part 2 and Part 1. The overall leaderboard is ordered by local score.
 
 Hosted via **AWS Lambda**.
 
