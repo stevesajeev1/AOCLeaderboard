@@ -20,3 +20,9 @@ Hosted via **AWS Lambda**.
 ```console
 pip install -r requirements.txt
 ```
+
+## Image Preview
+### Daily Leaderboard
+![Daily Leaderboard](images/daily_leaderboard.png)
+### Overall Leaderboard
+![Overall Leaderboard](images/overall_leaderboard.png)
