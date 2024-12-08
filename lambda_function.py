@@ -141,7 +141,7 @@ def generate_day_leaderboard(members):
             """Formats timedelta"""
             hours, remainder = divmod(timedelta.total_seconds(), 60*60)
             minutes, seconds = divmod(remainder, 60)
-            return f"{int(hours):02}:{int(minutes):02}:{int(seconds):02}"
+            return f"{int(hours - 5):02}:{int(minutes):02}:{int(seconds):02}"
 
         midnight = datetime.now().replace(day=DAY, hour=0, minute=0, second=0, microsecond=0)
         
