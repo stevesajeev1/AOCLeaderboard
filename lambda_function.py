@@ -89,7 +89,7 @@ def generate_overall_leaderboard(members):
     # Write member rankings
     for i, member in enumerate(members):
         # Write rank and score
-        member_score = f"{(i + 1):>2}) {member['local_score']:>3}"
+        member_score = f"{(i + 1):>2}) {member['local_score']:>4}"
         draw.text((FONT_WIDTH, line * FONT_HEIGHT), member_score, WHITE, font)
         
         # Write stars
@@ -101,7 +101,7 @@ def generate_overall_leaderboard(members):
             day_level = member['completion_day_level'].get(i, 0)
             if prev_level != day_level:
                 if prev_level != -1:
-                    draw.text(((9 + offset) * FONT_WIDTH, line * FONT_HEIGHT), star_text, star_color, font)
+                    draw.text(((10 + offset) * FONT_WIDTH, line * FONT_HEIGHT), star_text, star_color, font)
                     offset += len(star_text)
                     star_text = ""
                     pass
@@ -114,7 +114,7 @@ def generate_overall_leaderboard(members):
                         star_color = GOLD
                 prev_level = day_level
             star_text += "*"
-        draw.text(((9 + offset) * FONT_WIDTH, line * FONT_HEIGHT), star_text, star_color, font)
+        draw.text(((10 + offset) * FONT_WIDTH, line * FONT_HEIGHT), star_text, star_color, font)
         
         # Write name
         draw.text((35 * FONT_WIDTH, line * FONT_HEIGHT), member['name'], WHITE, font)
