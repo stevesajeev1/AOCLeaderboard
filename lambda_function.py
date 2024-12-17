@@ -89,7 +89,7 @@ def generate_overall_leaderboard(members):
     # Write member rankings
     for i, member in enumerate(members):
         # Write rank and score
-        member_score = f"{(i + 1):>2}) {member['local_score']:>3}"
+        member_score = f"{(i + 1):>2}) {member['local_score']:>4}"
         draw.text((FONT_WIDTH, line * FONT_HEIGHT), member_score, WHITE, font)
         
         # Write stars
