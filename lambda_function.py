@@ -63,7 +63,7 @@ def generate_overall_leaderboard(members):
     # Calculate max member name length for padding
     max_member_len = max([len(member['name']) for member in members])
 
-    width = 36 + max_member_len
+    width = 37 + max_member_len
     height = 2 + len(members)
     
     image = Image.new('RGB', (width * FONT_WIDTH, height * FONT_HEIGHT), BG)
@@ -80,8 +80,8 @@ def generate_overall_leaderboard(members):
     days_header_color = GREEN
     for i in range(1, 26):
         if i >= 10:
-            draw.text(((8 + i) * FONT_WIDTH, line * FONT_HEIGHT), str(i // 10), days_header_color, font)
-        draw.text(((8 + i) * FONT_WIDTH, (line + 1) * FONT_HEIGHT), str(i % 10), days_header_color, font)
+            draw.text(((9 + i) * FONT_WIDTH, line * FONT_HEIGHT), str(i // 10), days_header_color, font)
+        draw.text(((9 + i) * FONT_WIDTH, (line + 1) * FONT_HEIGHT), str(i % 10), days_header_color, font)
         if i == DAY:
             days_header_color = GREY
     line += 2
@@ -117,7 +117,7 @@ def generate_overall_leaderboard(members):
         draw.text(((10 + offset) * FONT_WIDTH, line * FONT_HEIGHT), star_text, star_color, font)
         
         # Write name
-        draw.text((35 * FONT_WIDTH, line * FONT_HEIGHT), member['name'], WHITE, font)
+        draw.text((36 * FONT_WIDTH, line * FONT_HEIGHT), member['name'], WHITE, font)
         
         line += 1
     
