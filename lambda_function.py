@@ -13,9 +13,9 @@ load_dotenv()
 
 # Load environment variables
 TEST_MODE = os.getenv("TEST_MODE") == "True"
-SESSION_COOKIE = os.getenv("SESSION_COOKIE")
+SESSION_COOKIE = os.getenv("SESSION_COOKIE", "")
 PRIVATE_LEADERBOARD_CODE = os.getenv("PRIVATE_LEADERBOARD_CODE")
-WEBHOOK_URL = os.getenv("WEBHOOK_URL")
+WEBHOOK_URL = os.getenv("WEBHOOK_URL", "")
 
 # Setup image parameters
 FONT_WIDTH = 8
@@ -31,6 +31,7 @@ SILVER = (153, 153, 204)
 
 # Get current day
 DAY = datetime.today().day - 1
+YEAR = datetime.today().year
 
 def parse_data(data):
     """Parses JSON API data, filtering for relevant fields"""
@@ -230,7 +231,7 @@ def lambda_handler(event, context):
         cookies = {
             'session': SESSION_COOKIE
         }
-        r = requests.get(f'https://adventofcode.com/2024/leaderboard/private/view/{PRIVATE_LEADERBOARD_CODE}.json', cookies=cookies)
+        r = requests.get(f'https://adventofcode.com/{YEAR}/leaderboard/private/view/{PRIVATE_LEADERBOARD_CODE}.json', cookies=cookies)
         data = r.json()
     
     # Parse data
