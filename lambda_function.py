@@ -48,6 +48,8 @@ def parse_data(data):
                 member_data['completion_day_level'].get(str(DAY), {}).get('2', {}).get('get_star_ts'),
             )
         }
+        if member['name'] is None:
+            member['name'] = 'Anonymous'
         
         for day, data in member_data['completion_day_level'].items():
             member['completion_day_level'][int(day)] = len(data.keys())
