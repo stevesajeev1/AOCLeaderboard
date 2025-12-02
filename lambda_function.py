@@ -1,5 +1,5 @@
 import json
-from datetime import datetime
+from datetime import datetime, timezone
 import requests
 
 from PIL import Image, ImageDraw, ImageFont
@@ -20,6 +20,7 @@ WEBHOOK_URL = os.getenv("WEBHOOK_URL", "")
 # Setup image parameters
 FONT_WIDTH = 8
 FONT_HEIGHT = 20
+TOTAL_DAYS = 12
 
 # Colors
 BG = (15, 15, 35)
@@ -36,7 +37,7 @@ YEAR = datetime.today().year
 def parse_data(data):
     """Parses JSON API data, filtering for relevant fields"""
     members = []
-    
+
     # Filter data for fields needed to display leaderboard
     for member_data in data['members'].values():
         member = {
@@ -50,10 +51,10 @@ def parse_data(data):
         }
         if member['name'] is None:
             member['name'] = 'Anonymous'
-        
+
         for day, data in member_data['completion_day_level'].items():
             member['completion_day_level'][int(day)] = len(data.keys())
-        
+
         members.append(member)
 
     return members
@@ -66,22 +67,22 @@ def generate_overall_leaderboard(members):
     # Calculate max member name length for padding
     max_member_len = max([len(member['name']) for member in members])
 
-    width = 37 + max_member_len
+    width = 12 + TOTAL_DAYS + max_member_len
     height = 2 + len(members)
-    
+
     image = Image.new('RGB', (width * FONT_WIDTH, height * FONT_HEIGHT), BG)
     draw = ImageDraw.Draw(image)
     font = ImageFont.truetype('SourceCodePro-Regular.ttf', 14)
-    
+
     line = 0
     # Write leaderboard header
     leaderboard_header = f"Overall Leaderboard"
     draw.text(((width - len(leaderboard_header)) * FONT_WIDTH / 2, line * FONT_HEIGHT), leaderboard_header, WHITE, font)
     line += 1
-    
+
     # Write days header
     days_header_color = GREEN
-    for i in range(1, 26):
+    for i in range(1, TOTAL_DAYS + 1):
         if i >= 10:
             draw.text(((9 + i) * FONT_WIDTH, line * FONT_HEIGHT), str(i // 10), days_header_color, font)
         draw.text(((9 + i) * FONT_WIDTH, (line + 1) * FONT_HEIGHT), str(i % 10), days_header_color, font)
@@ -94,7 +95,7 @@ def generate_overall_leaderboard(members):
         # Write rank and score
         member_score = f"{(i + 1):>2}) {member['local_score']:>4}"
         draw.text((FONT_WIDTH, line * FONT_HEIGHT), member_score, WHITE, font)
-        
+
         # Write stars
         offset = 0
         prev_level = -1
@@ -118,12 +119,12 @@ def generate_overall_leaderboard(members):
                 prev_level = day_level
             star_text += "*"
         draw.text(((10 + offset) * FONT_WIDTH, line * FONT_HEIGHT), star_text, star_color, font)
-        
+
         # Write name
-        draw.text((36 * FONT_WIDTH, line * FONT_HEIGHT), member['name'], WHITE, font)
-        
+        draw.text(((11 + TOTAL_DAYS) * FONT_WIDTH, line * FONT_HEIGHT), member['name'], WHITE, font)
+
         line += 1
-    
+
     return image
 
 def generate_day_leaderboard(members):
@@ -137,7 +138,7 @@ def generate_day_leaderboard(members):
         if member['day_level_time'][0] is not None:
             score[1] = member['day_level_time'][0]
         return score
-    
+
     def parse_timestamps(timestamps):
         """Generates time strings from timestamps"""
         def format_td(timedelta):
@@ -146,16 +147,16 @@ def generate_day_leaderboard(members):
             minutes, seconds = divmod(remainder, 60)
             return f"{int(hours - 5):02}:{int(minutes):02}:{int(seconds):02}"
 
-        midnight = datetime.now().replace(day=DAY, hour=0, minute=0, second=0, microsecond=0)
-        
+        midnight = datetime.now(timezone.utc).replace(day=DAY, hour=0, minute=0, second=0, microsecond=0)
+
         time_1 = "N/A"
         if timestamps[0] is not None:
-            td = datetime.fromtimestamp(timestamps[0]) - midnight
+            td = datetime.fromtimestamp(timestamps[0], tz=timezone.utc) - midnight
             time_1 = format_td(td)
-        
+
         time_2 = "N/A"
         if timestamps[1] is not None:
-            td = datetime.fromtimestamp(timestamps[1]) - midnight
+            td = datetime.fromtimestamp(timestamps[1], tz=timezone.utc) - midnight
             time_2 = format_td(td)
             
         return f"{time_1:>8}   {time_2:>8}"
@@ -164,42 +165,42 @@ def generate_day_leaderboard(members):
     members = sorted(members, key=sort)
     # Filter members to only those that have attempted
     members = list(filter(lambda member: member['day_level_time'] != (None, None), members))
-    
+
     # No solutions :(
     if len(members) == 0:
         image = Image.new('RGB', (51 * FONT_WIDTH, 4 * FONT_HEIGHT), BG)
         draw = ImageDraw.Draw(image)
         font = ImageFont.truetype('SourceCodePro-Regular.ttf', 14)
-        
+
         leaderboard_header = f"Leaderboard for Day {DAY}"
         draw.text(((51 - len(leaderboard_header)) * FONT_WIDTH / 2, 0), leaderboard_header, WHITE, font)
-        
+
         text = f"No one solved Day {DAY} :("
         draw.text(((51 - len(text)) * FONT_WIDTH / 2, 2 * FONT_HEIGHT), text, WHITE, font)
-        
+
         return image
-    
+
     # Calculate max member name length for padding
     max_member_len = max([len(member['name']) for member in members])
-    
+
     width = 32 + max_member_len
     height = 3 + len(members)
-    
+
     image = Image.new('RGB', (width * FONT_WIDTH, height * FONT_HEIGHT), BG)
     draw = ImageDraw.Draw(image)
     font = ImageFont.truetype('SourceCodePro-Regular.ttf', 14)
-    
+
     line = 0
     # Write leaderboard header
     leaderboard_header = f"Leaderboard for Day {DAY}"
     draw.text(((width - len(leaderboard_header)) * FONT_WIDTH / 2, line * FONT_HEIGHT), leaderboard_header, WHITE, font)
     line += 1
-    
+
     # Write time header
     draw.text((8 * FONT_WIDTH, line * FONT_HEIGHT), "-Part 1-", SILVER, font)
     draw.text((19 * FONT_WIDTH, line * FONT_HEIGHT), "-Part 2-", GOLD, font)
     line += 1
-    
+
     draw.text((12 * FONT_WIDTH, line * FONT_HEIGHT), "Time", SILVER, font)
     draw.text((23 * FONT_WIDTH, line * FONT_HEIGHT), "Time", GOLD, font)
     line += 1
@@ -209,14 +210,14 @@ def generate_day_leaderboard(members):
         # Write rank
         rank = f"{(i + 1):>2})"
         draw.text((FONT_WIDTH, line * FONT_HEIGHT), rank, WHITE, font)
-        
+
         # Write times
         times = parse_timestamps(member['day_level_time'])
         draw.text((8 * FONT_WIDTH, line * FONT_HEIGHT), times, WHITE, font)
-        
+
         # Write name
         draw.text((31 * FONT_WIDTH, line * FONT_HEIGHT), member['name'], WHITE, font)
-        
+
         line += 1
     
     return image
@@ -235,16 +236,16 @@ def lambda_handler(event, context):
         }
         r = requests.get(f'https://adventofcode.com/{YEAR}/leaderboard/private/view/{PRIVATE_LEADERBOARD_CODE}.json', cookies=cookies)
         data = r.json()
-    
+
     # Parse data
     members = parse_data(data)
 
     # Generate day leaderboard
     day_leaderboard = generate_day_leaderboard(members)
-    
+
     # Generate overall leaderboard
     overall_leaderboard = generate_overall_leaderboard(members)
-    
+
     # Send to webhook
     wh = SyncWebhook.from_url(WEBHOOK_URL)
 
@@ -252,7 +253,7 @@ def lambda_handler(event, context):
         day_leaderboard.save(day_image_binary, 'PNG')
         day_image_binary.seek(0)
         wh.send(username='Advent of Code Leaderboard', file=File(fp=day_image_binary, filename=f'day{DAY}_leaderboard.png'))
-    
+
     with io.BytesIO() as overall_image_binary:
         overall_leaderboard.save(overall_image_binary, 'PNG')
         overall_image_binary.seek(0)
